@@ -1,22 +1,19 @@
 package runeaudio.com.runeaudio;
 
 import android.app.Activity;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
+import android.nsdchat.NsdHelper;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.content.Context;
-import android.os.Build;
-import android.os.Bundle;
-import android.view.Gravity;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.support.v4.widget.DrawerLayout;
-import android.widget.ArrayAdapter;
-import android.widget.TextView;
 
 
 public class MainActivity extends ActionBarActivity
@@ -32,6 +29,13 @@ public class MainActivity extends ActionBarActivity
      */
     private CharSequence mTitle;
 
+
+    private static final String TAG = "MainActivity";
+
+
+    private NsdHelper mNsdHelper;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +49,51 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+
     }
+
+    @Override
+    protected void onStart() {
+        mNsdHelper = new NsdHelper(this);
+        mNsdHelper.initializeNsd();
+
+        super.onStart();
+    }
+
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "Pausing.");
+        if (mNsdHelper != null) {
+            mNsdHelper.stopDiscovery();
+        }
+        super.onPause();
+    }
+    @Override
+    protected void onResume() {
+        Log.d(TAG, "Resuming.");
+        super.onResume();
+        if (mNsdHelper != null) {
+            mNsdHelper.discoverServices();
+        }
+    }
+    // For KitKat and earlier releases, it is necessary to remove the
+    // service registration when the application is stopped. There's
+    // no guarantee that the onDestroy() method will be called (we're
+    // killable after onStop() returns) and the NSD service won't remove
+    // the registration for us if we're killed.
+    // In L and later, NsdService will automatically unregister us when
+    // our connection goes away when we're killed, so this step is
+    // optional (but recommended).
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "Being stopped.");
+        mNsdHelper.tearDown();
+        mNsdHelper = null;
+        super.onStop();
+    }
+
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
@@ -145,5 +193,8 @@ public class MainActivity extends ActionBarActivity
                     getArguments().getInt(ARG_SECTION_NUMBER));
         }
     }
+
+
+
 
 }
