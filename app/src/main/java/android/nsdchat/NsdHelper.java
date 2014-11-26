@@ -32,9 +32,10 @@ public class NsdHelper {
 
     // TODO: is this the service we want?
     public static final String SERVICE_TYPE = "_workstation._tcp";
-
+    // public static final String SERVICE_TYPE = "_http._tcp";
     public static final String TAG = "NsdHelper";
-    public String mServiceName = "NsdChat";
+    // TOOD: re-think this.
+    public String mServiceName = "runeaudio";
 
     NsdServiceInfo mService;
 
@@ -62,12 +63,18 @@ public class NsdHelper {
 
             @Override
             public void onServiceFound(NsdServiceInfo service) {
-                Log.d(TAG, "Service discovery success" + service);
-                if (!service.getServiceType().equals(SERVICE_TYPE)) {
-                    Log.d(TAG, "Unknown Service Type: " + service.getServiceType());
-                } else if (service.getServiceName().equals(mServiceName)) {
-                    Log.d(TAG, "Same machine: " + mServiceName);
-                } else if (service.getServiceName().contains(mServiceName)){
+                Log.d(TAG, "Service discovery success " + service);
+
+                Log.d(TAG, "Service name == " + service.getServiceName() + " host == " + service.getHost() + " port == " + service.getPort());
+
+                // TODO: any of this needed?
+//                if (!service.getServiceType().equals(SERVICE_TYPE)) {
+//                    Log.d(TAG, "Unknown Service Type: " + service.getServiceType());
+//                } else if (service.getServiceName().equals(mServiceName)) {
+//                    Log.d(TAG, "Same machine: " + mServiceName);
+//                } else
+
+                if (service.getServiceName().contains(mServiceName)){
                     mNsdManager.resolveService(service, mResolveListener);
                 }
             }
@@ -99,6 +106,7 @@ public class NsdHelper {
         };
     }
 
+    // TODO: start here. need to be resolved in order to get host & port!!!
     public void initializeResolveListener() {
         mResolveListener = new NsdManager.ResolveListener() {
 
