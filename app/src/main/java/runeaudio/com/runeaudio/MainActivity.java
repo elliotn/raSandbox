@@ -17,7 +17,7 @@ import android.view.ViewGroup;
 
 
 public class MainActivity extends ActionBarActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, NsdHelper.NsdHelperListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -55,7 +55,7 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     protected void onStart() {
-        mNsdHelper = new NsdHelper(this);
+        mNsdHelper = new NsdHelper(this, this);
         mNsdHelper.initializeNsd();
 
         super.onStart();
@@ -152,6 +152,11 @@ public class MainActivity extends ActionBarActivity
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void OnServiceAdded() {
+        Log.d(TAG, "service added: " + mNsdHelper.getChosenServiceInfo());
     }
 
     /**

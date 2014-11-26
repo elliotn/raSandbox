@@ -21,14 +21,22 @@ import android.net.nsd.NsdServiceInfo;
 import android.net.nsd.NsdManager;
 import android.util.Log;
 
+
 public class NsdHelper {
 
-    Context mContext;
+    public interface NsdHelperListener {
+        public void OnServiceAdded();
+    }
 
-    NsdManager mNsdManager;
-    NsdManager.ResolveListener mResolveListener;
-    NsdManager.DiscoveryListener mDiscoveryListener;
-    NsdManager.RegistrationListener mRegistrationListener;
+
+    private Context mContext;
+
+    private NsdManager mNsdManager;
+    private NsdManager.ResolveListener mResolveListener;
+    private NsdManager.DiscoveryListener mDiscoveryListener;
+    private NsdManager.RegistrationListener mRegistrationListener;
+
+    private NsdHelperListener mListener;
 
     // TODO: is this the service we want?
     public static final String SERVICE_TYPE = "_workstation._tcp";
@@ -37,11 +45,15 @@ public class NsdHelper {
     // TOOD: re-think this.
     public String mServiceName = "runeaudio";
 
-    NsdServiceInfo mService;
+    // TODO: remove when as soon as possible.
+    private static final int HARD_CODED_PORT = 80;
 
-    public NsdHelper(Context context) {
+    private NsdServiceInfo mService;
+
+    public NsdHelper(Context context, NsdHelperListener listener) {
         mContext = context;
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
+        mListener = listener;
     }
 
     public void initializeNsd() {
@@ -74,9 +86,12 @@ public class NsdHelper {
 //                    Log.d(TAG, "Same machine: " + mServiceName);
 //                } else
 
+
+				// TODO: re-think how to handle multiple rune audio devices.
                 if (service.getServiceName().contains(mServiceName)){
                     mNsdManager.resolveService(service, mResolveListener);
                 }
+
             }
 
             @Override
@@ -86,10 +101,10 @@ public class NsdHelper {
                     mService = null;
                 }
             }
-            
+
             @Override
             public void onDiscoveryStopped(String serviceType) {
-                Log.i(TAG, "Discovery stopped: " + serviceType);        
+                Log.i(TAG, "Discovery stopped: " + serviceType);
             }
 
             @Override
@@ -124,6 +139,11 @@ public class NsdHelper {
                     return;
                 }
                 mService = serviceInfo;
+
+                if (mListener != null) {
+                    mService.setPort(HARD_CODED_PORT);
+                    mListener.OnServiceAdded();
+                }
             }
         };
     }
@@ -135,7 +155,7 @@ public class NsdHelper {
             public void onServiceRegistered(NsdServiceInfo NsdServiceInfo) {
                 mServiceName = NsdServiceInfo.getServiceName();
             }
-            
+
             @Override
             public void onRegistrationFailed(NsdServiceInfo arg0, int arg1) {
             }
@@ -143,11 +163,11 @@ public class NsdHelper {
             @Override
             public void onServiceUnregistered(NsdServiceInfo arg0) {
             }
-            
+
             @Override
             public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
             }
-            
+
         };
     }
 
@@ -156,17 +176,17 @@ public class NsdHelper {
         serviceInfo.setPort(port);
         serviceInfo.setServiceName(mServiceName);
         serviceInfo.setServiceType(SERVICE_TYPE);
-        
+
         mNsdManager.registerService(
                 serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
-        
+
     }
 
     public void discoverServices() {
         mNsdManager.discoverServices(
                 SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
     }
-    
+
     public void stopDiscovery() {
         mNsdManager.stopServiceDiscovery(mDiscoveryListener);
     }
@@ -174,7 +194,7 @@ public class NsdHelper {
     public NsdServiceInfo getChosenServiceInfo() {
         return mService;
     }
-    
+
     public void tearDown() {
         mNsdManager.unregisterService(mRegistrationListener);
     }
