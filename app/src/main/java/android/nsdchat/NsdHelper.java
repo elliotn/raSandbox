@@ -34,7 +34,6 @@ public class NsdHelper {
     private NsdManager mNsdManager;
     private NsdManager.ResolveListener mResolveListener;
     private NsdManager.DiscoveryListener mDiscoveryListener;
-    private NsdManager.RegistrationListener mRegistrationListener;
 
     private NsdHelperListener mListener;
 
@@ -59,10 +58,8 @@ public class NsdHelper {
     public void initializeNsd() {
         initializeResolveListener();
         initializeDiscoveryListener();
-        initializeRegistrationListener();
 
         //mNsdManager.init(mContext.getMainLooper(), this);
-
     }
 
     public void initializeDiscoveryListener() {
@@ -148,39 +145,9 @@ public class NsdHelper {
         };
     }
 
-    public void initializeRegistrationListener() {
-        mRegistrationListener = new NsdManager.RegistrationListener() {
 
-            @Override
-            public void onServiceRegistered(NsdServiceInfo NsdServiceInfo) {
-                mServiceName = NsdServiceInfo.getServiceName();
-            }
 
-            @Override
-            public void onRegistrationFailed(NsdServiceInfo arg0, int arg1) {
-            }
 
-            @Override
-            public void onServiceUnregistered(NsdServiceInfo arg0) {
-            }
-
-            @Override
-            public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
-            }
-
-        };
-    }
-
-    public void registerService(int port) {
-        NsdServiceInfo serviceInfo  = new NsdServiceInfo();
-        serviceInfo.setPort(port);
-        serviceInfo.setServiceName(mServiceName);
-        serviceInfo.setServiceType(SERVICE_TYPE);
-
-        mNsdManager.registerService(
-                serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
-
-    }
 
     public void discoverServices() {
         mNsdManager.discoverServices(
@@ -195,7 +162,5 @@ public class NsdHelper {
         return mService;
     }
 
-    public void tearDown() {
-        mNsdManager.unregisterService(mRegistrationListener);
-    }
+
 }

@@ -89,7 +89,6 @@ public class MainActivity extends ActionBarActivity
     @Override
     protected void onStop() {
         Log.d(TAG, "Being stopped.");
-        mNsdHelper.tearDown();
         mNsdHelper = null;
         super.onStop();
     }
@@ -111,9 +110,6 @@ public class MainActivity extends ActionBarActivity
                 break;
             case 2:
                 mTitle = getString(R.string.title_section2);
-                break;
-            case 3:
-                mTitle = getString(R.string.title_section3);
                 break;
         }
     }
@@ -188,6 +184,8 @@ public class MainActivity extends ActionBarActivity
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+            // TODO: start here. need to get access to device info to show progress bar or show "device found".
             return rootView;
         }
 
