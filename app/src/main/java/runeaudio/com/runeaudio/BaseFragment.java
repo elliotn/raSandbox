@@ -7,20 +7,39 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class BaseFragment extends Fragment {
+public abstract class BaseFragment extends Fragment {
 
     /**
      * The fragment argument representing the section number for this
      * fragment.
      */
-    private static final String ARG_SECTION_NUMBER = "section_number";
+    protected  static final String ARG_SECTION_NUMBER = "section_number";
+
+    private static final int DISCOVERY_FRAGMENT = 0;
+    private static final int DEVICE_FRAGMENT = 1;
 
     /**
      * Returns a new instance of this fragment for the given section
      * number.
      */
     public static BaseFragment newInstance(int sectionNumber) {
-        BaseFragment fragment = new BaseFragment();
+
+        BaseFragment fragment;
+
+        switch (sectionNumber) {
+            case DISCOVERY_FRAGMENT:
+                fragment = new DiscoveryFragment();
+                break;
+
+            case DEVICE_FRAGMENT:
+                // TODO - update with device fragment
+                fragment = new DiscoveryFragment();
+                break;
+
+            default:
+                return null;
+        }
+
         Bundle args = new Bundle();
         args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);
@@ -30,10 +49,13 @@ public class BaseFragment extends Fragment {
     public BaseFragment() {
     }
 
+    public abstract int getLayout();
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        View rootView = inflater.inflate(getLayout(), container, false);
 
         // TODO: start here. need to get access to device info to show progress bar or show "device found".
         return rootView;
