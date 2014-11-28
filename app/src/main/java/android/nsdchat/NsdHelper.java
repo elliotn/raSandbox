@@ -39,7 +39,6 @@ public class NsdHelper {
 
     // TODO: is this the service we want?
     public static final String SERVICE_TYPE = "_workstation._tcp";
-    // public static final String SERVICE_TYPE = "_http._tcp";
     public static final String TAG = "NsdHelper";
     // TOOD: re-think this.
     public String mServiceName = "runeaudio";

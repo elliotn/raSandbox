@@ -65,10 +65,20 @@ public class NavigationDrawerFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        MainActivity activity = (MainActivity) getActivity();
+
         // Read in the flag indicating whether or not the user has demonstrated awareness of the
         // drawer. See PREF_USER_LEARNED_DRAWER for details.
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
         mUserLearnedDrawer = sp.getBoolean(PREF_USER_LEARNED_DRAWER, false);
+
+        // show fragment based on device availability.
+        // TODO: does this conflict with savedInstanceState?
+        if (activity.isDeviceAvailable()) {
+            mCurrentSelectedPosition = BaseFragment.DEVICE_FRAGMENT;
+        } else {
+            mCurrentSelectedPosition = BaseFragment.DISCOVERY_FRAGMENT;
+        }
 
         if (savedInstanceState != null) {
             mCurrentSelectedPosition = savedInstanceState.getInt(STATE_SELECTED_POSITION);

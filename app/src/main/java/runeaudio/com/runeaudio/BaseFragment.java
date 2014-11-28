@@ -15,12 +15,12 @@ public abstract class BaseFragment extends Fragment {
      */
     protected  static final String ARG_SECTION_NUMBER = "section_number";
 
-    private static final int DISCOVERY_FRAGMENT = 0;
-    private static final int DEVICE_FRAGMENT = 1;
+    public static final int DISCOVERY_FRAGMENT = 0;
+    public static final int DEVICE_FRAGMENT = 1;
 
     /**
      * Returns a new instance of this fragment for the given section
-     * number.
+     * number. Basically this is a factory method.
      */
     public static BaseFragment newInstance(int sectionNumber) {
 
@@ -32,8 +32,7 @@ public abstract class BaseFragment extends Fragment {
                 break;
 
             case DEVICE_FRAGMENT:
-                // TODO - update with device fragment
-                fragment = new DiscoveryFragment();
+                fragment = new RuneAudioUiFragment();
                 break;
 
             default:
