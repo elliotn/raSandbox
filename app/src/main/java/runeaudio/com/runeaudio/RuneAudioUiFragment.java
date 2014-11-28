@@ -1,5 +1,6 @@
 package runeaudio.com.runeaudio;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,9 +23,20 @@ public class RuneAudioUiFragment extends BaseFragment {
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
         mWebView = (WebView) view.findViewById(R.id.runeUi);
-        // TOOD: remove hard-coded URL.
-        mWebView.loadUrl("http://172.16.0.10");
+        mWebView.getSettings().setJavaScriptEnabled(true);
 
+        RuneAudioApplication application = (RuneAudioApplication) getActivity().getApplication();
+        String host = application.getHost();
+        int port = application.getPort();
+
+        StringBuilder url = new StringBuilder();
+
+        url.append("http://")
+                .append(host)
+                .append(":")
+                .append(port);
+
+        mWebView.loadUrl(url.toString());
 
         return view;
     }

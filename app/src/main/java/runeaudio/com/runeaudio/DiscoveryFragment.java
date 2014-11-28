@@ -66,11 +66,12 @@ public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelp
 
         NsdServiceInfo serviceInfo = mNsdHelper.getChosenServiceInfo();
 
-        // TODO: save host & port into shared prefs
+
         MainActivity activity = (MainActivity) getActivity();
 
+        // save host & port into shared prefs
         RuneAudioApplication application = (RuneAudioApplication) activity.getApplication();
-        application.setHost(serviceInfo.getHost().toString());
+        application.setHost(serviceInfo.getHost().getHostAddress());
         application.setPort(serviceInfo.getPort());
 
         // switch to ui fragment.
