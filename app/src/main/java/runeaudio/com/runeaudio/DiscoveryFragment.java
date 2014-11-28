@@ -6,6 +6,8 @@ import android.util.Log;
 
 public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelperListener {
 
+    // TODO: need to handle some timeout. show popup, toast, etc.
+
     private NsdHelper mNsdHelper;
 
     private static final String TAG = "DiscoveryFragment";
@@ -60,6 +62,10 @@ public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelp
     @Override
     public void OnServiceAdded() {
         Log.d(TAG, "service added: " + mNsdHelper.getChosenServiceInfo());
+        // TODO: save host & port into shared prefs
+
+        // switch to ui fragment.
+        ((MainActivity) getActivity()).onNavigationDrawerItemSelected(BaseFragment.DEVICE_FRAGMENT);
     }
 
 
