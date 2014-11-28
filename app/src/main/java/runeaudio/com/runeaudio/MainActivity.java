@@ -54,6 +54,7 @@ public class MainActivity extends ActionBarActivity
                 .commit();
     }
 
+
     public void onSectionAttached(int number) {
         switch (number) {
             case BaseFragment.DISCOVERY_FRAGMENT:
@@ -102,8 +103,11 @@ public class MainActivity extends ActionBarActivity
     }
 
     public boolean isDeviceAvailable() {
-        // TODO: make decision based off of prefs
-        return false;
+        RuneAudioApplication application = (RuneAudioApplication) getApplication();
+
+        return (application.getHost() != null &&
+                application.getPort() != -1);
+
     }
 
 }

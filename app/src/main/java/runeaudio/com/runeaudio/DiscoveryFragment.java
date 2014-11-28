@@ -1,6 +1,7 @@
 package runeaudio.com.runeaudio;
 
 
+import android.net.nsd.NsdServiceInfo;
 import android.nsdchat.NsdHelper;
 import android.util.Log;
 
@@ -62,10 +63,19 @@ public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelp
     @Override
     public void OnServiceAdded() {
         Log.d(TAG, "service added: " + mNsdHelper.getChosenServiceInfo());
+
+        NsdServiceInfo serviceInfo = mNsdHelper.getChosenServiceInfo();
+
         // TODO: save host & port into shared prefs
+        MainActivity activity = (MainActivity) getActivity();
+
+        RuneAudioApplication application = (RuneAudioApplication) activity.getApplication();
+        application.setHost(serviceInfo.getHost().toString());
+        application.setPort(serviceInfo.getPort());
 
         // switch to ui fragment.
-        ((MainActivity) getActivity()).onNavigationDrawerItemSelected(BaseFragment.DEVICE_FRAGMENT);
+        // TODO: title in action bar needs to be updated.
+        activity.onNavigationDrawerItemSelected(BaseFragment.DEVICE_FRAGMENT);
     }
 
 
