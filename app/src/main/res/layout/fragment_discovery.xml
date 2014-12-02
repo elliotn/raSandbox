@@ -7,19 +7,35 @@
     tools:context=".MainActivity$PlaceholderFragment">
 
 
-    <TextView android:id="@+id/deviceInfo" android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/search_string"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:textSize="20dp"/>
+    <!-- progress layout  -->
+    <RelativeLayout
+        android:id="@+id/progressLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"        >
 
-    <ProgressBar
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:indeterminate="true"
-        android:layout_below="@id/deviceInfo"/>
+        <TextView android:id="@+id/deviceInfo" android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/search_string"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:textSize="20dp"/>
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:indeterminate="true"
+            android:layout_below="@id/deviceInfo"/>
+
+    </RelativeLayout>
+
+    <!-- listview with multiple services -->
+    <ListView
+        android:id="@+id/serviceList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        />
 
 </RelativeLayout>

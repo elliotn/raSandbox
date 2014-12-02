@@ -19,34 +19,44 @@ package android.nsdchat;
 import android.content.Context;
 import android.net.nsd.NsdServiceInfo;
 import android.net.nsd.NsdManager;
+import android.os.Handler;
 import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 
 public class NsdHelper {
 
     public interface NsdHelperListener {
-        public void OnServiceAdded();
+        public void OnServicesAdded();
     }
 
 
     private Context mContext;
 
     private NsdManager mNsdManager;
-    private NsdManager.ResolveListener mResolveListener;
     private NsdManager.DiscoveryListener mDiscoveryListener;
 
     private NsdHelperListener mListener;
 
-    // TODO: is this the service we want?
+    // TODO: is this the service we want? it returns port 9.
     public static final String SERVICE_TYPE = "_workstation._tcp";
-    public static final String TAG = "NsdHelper";
-    // TOOD: re-think this.
-    public String mServiceName = "runeaudio";
-
-    // TODO: remove when as soon as possible.
     private static final int HARD_CODED_PORT = 80;
 
+    public static final String TAG = "NsdHelper";
+    public static final String SERVICE_NAME = "runeaudio";
+
+    public static final int DISCOVERY_TIMEOUT_SECONDS = 5000;
+    public Handler mDiscoveryTimeoutHandler;
+
+
     private NsdServiceInfo mService;
+    private LinkedList<NsdServiceInfo> mServiceList = new LinkedList<NsdServiceInfo>();
+    private Iterator<NsdServiceInfo> mServiceListIterator  = null;
+
+    private ArrayList<NsdServiceInfo> mResolvedServiceList = new ArrayList<>();
 
     public NsdHelper(Context context, NsdHelperListener listener) {
         mContext = context;
@@ -55,10 +65,48 @@ public class NsdHelper {
     }
 
     public void initializeNsd() {
-        initializeResolveListener();
+        startDiscoveryTimer();
         initializeDiscoveryListener();
 
         //mNsdManager.init(mContext.getMainLooper(), this);
+    }
+
+    private void allServicesResolved() {
+        mServiceList.clear();
+
+        if (mListener != null) {
+            mListener.OnServicesAdded();
+        }
+    }
+
+
+    public void resolveNextService() {
+        if (mServiceListIterator == null) {
+            return;
+        }
+
+        // either resolve the next service or we are done.
+        if (mServiceListIterator.hasNext()) {
+            NsdServiceInfo service = (NsdServiceInfo) mServiceListIterator.next();
+            mNsdManager.resolveService(service, new ResolveListener());
+        } else {
+            allServicesResolved();
+        }
+    }
+
+
+    /**
+     * Discovery still be stopped after DISCOVERY_TIMEOUT_SECONDS.
+     */
+    public void startDiscoveryTimer() {
+        mDiscoveryTimeoutHandler = new Handler();
+
+        mDiscoveryTimeoutHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                stopDiscovery();
+            }
+        }, DISCOVERY_TIMEOUT_SECONDS);
     }
 
     public void initializeDiscoveryListener() {
@@ -73,34 +121,30 @@ public class NsdHelper {
             public void onServiceFound(NsdServiceInfo service) {
                 Log.d(TAG, "Service discovery success " + service);
 
-                Log.d(TAG, "Service name == " + service.getServiceName() + " host == " + service.getHost() + " port == " + service.getPort());
-
-                // TODO: any of this needed?
-//                if (!service.getServiceType().equals(SERVICE_TYPE)) {
-//                    Log.d(TAG, "Unknown Service Type: " + service.getServiceType());
-//                } else if (service.getServiceName().equals(mServiceName)) {
-//                    Log.d(TAG, "Same machine: " + mServiceName);
-//                } else
-
-
-				// TODO: re-think how to handle multiple rune audio devices.
-                if (service.getServiceName().contains(mServiceName)){
-                    mNsdManager.resolveService(service, mResolveListener);
+                // only add service that we are looking for.
+                if (service.getServiceName().contains(SERVICE_NAME)) {
+                    mServiceList.add(service);
                 }
-
             }
 
             @Override
             public void onServiceLost(NsdServiceInfo service) {
+                // TODO: think about this.
                 Log.e(TAG, "service lost" + service);
                 if (mService == service) {
                     mService = null;
                 }
             }
 
+
             @Override
             public void onDiscoveryStopped(String serviceType) {
                 Log.i(TAG, "Discovery stopped: " + serviceType);
+
+                // get iterator and start resolving services one at a time.
+                mServiceListIterator = mServiceList.iterator();
+
+                resolveNextService();
             }
 
             @Override
@@ -115,35 +159,35 @@ public class NsdHelper {
                 mNsdManager.stopServiceDiscovery(this);
             }
         };
+
     }
 
-    // TODO: start here. need to be resolved in order to get host & port!!!
-    public void initializeResolveListener() {
-        mResolveListener = new NsdManager.ResolveListener() {
 
-            @Override
-            public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
-                Log.e(TAG, "Resolve failed" + errorCode);
-            }
 
-            @Override
-            public void onServiceResolved(NsdServiceInfo serviceInfo) {
-                Log.e(TAG, "Resolve Succeeded. " + serviceInfo);
 
-                if (serviceInfo.getServiceName().equals(mServiceName)) {
-                    Log.d(TAG, "Same IP.");
-                    return;
-                }
-                mService = serviceInfo;
+    private class ResolveListener implements NsdManager.ResolveListener {
 
-                if (mListener != null) {
-                    mService.setPort(HARD_CODED_PORT);
-                    mListener.OnServiceAdded();
-                }
-            }
-        };
+        @Override
+        public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
+            Log.e(TAG, "Resolve failed " + errorCode + " name == " + serviceInfo.getServiceName());
+
+            resolveNextService();
+        }
+
+        @Override
+        public void onServiceResolved(NsdServiceInfo serviceInfo) {
+            Log.e(TAG, "Resolve Succeeded. " + serviceInfo);
+
+            // TODO: change this? since we are not searching for http service, we will hard code port.
+            serviceInfo.setPort(HARD_CODED_PORT);
+
+            mResolvedServiceList.add(serviceInfo);
+
+            resolveNextService();
+        }
+
+
     }
-
 
 
 
@@ -154,11 +198,14 @@ public class NsdHelper {
     }
 
     public void stopDiscovery() {
-        mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+        if (mDiscoveryListener != null) {
+            mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+            mDiscoveryListener = null;
+        }
     }
 
-    public NsdServiceInfo getChosenServiceInfo() {
-        return mService;
+    public ArrayList<NsdServiceInfo> getResolvedServiceList() {
+        return mResolvedServiceList;
     }
 
 

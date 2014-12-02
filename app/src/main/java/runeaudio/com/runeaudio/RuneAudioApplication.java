@@ -9,7 +9,7 @@ public final class RuneAudioApplication extends Application {
 
     private SharedPreferences mSharedPrefs;
 
-
+    private static final String SERVICE_NAME = "serviceName";
     private static final String HOST = "host";
     private static final String PORT = "port";
 
@@ -42,6 +42,18 @@ public final class RuneAudioApplication extends Application {
 
     public String getHost() {
         return mSharedPrefs.getString(HOST, null);
+    }
+
+
+    public void setServiceName(String serviceName) {
+        mSharedPrefs
+                .edit()
+                .putString(SERVICE_NAME, serviceName)
+                .apply();
+    }
+
+    public String getServiceName() {
+        return mSharedPrefs.getString(SERVICE_NAME, null);
     }
 
 }

@@ -3,9 +3,17 @@ package runeaudio.com.runeaudio;
 
 import android.net.nsd.NsdServiceInfo;
 import android.nsdchat.NsdHelper;
+import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
-public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelperListener {
+import java.util.ArrayList;
+
+public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelperListener, AdapterView.OnItemClickListener {
 
     // TODO: need to handle some timeout. show popup, toast, etc.
 
@@ -13,9 +21,25 @@ public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelp
 
     private static final String TAG = "DiscoveryFragment";
 
+    private View mProgressLayout;
+    private ListView mServiceListView;
+
     @Override
     public int getLayout() {
         return R.layout.fragment_discovery;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+
+        mProgressLayout = rootView.findViewById(R.id.progressLayout);
+        mServiceListView = (ListView) rootView.findViewById(R.id.serviceList);
+
+        mServiceListView.setOnItemClickListener(this);
+
+        return rootView;
     }
 
     @Override
@@ -60,25 +84,96 @@ public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelp
         super.onStop();
     }
 
-    @Override
-    public void OnServiceAdded() {
-        Log.d(TAG, "service added: " + mNsdHelper.getChosenServiceInfo());
-
-        NsdServiceInfo serviceInfo = mNsdHelper.getChosenServiceInfo();
-
-
+    /**
+     * Save Service info in shared prefs.
+     * @param serviceInfo
+     */
+    private void saveSelectedService(NsdServiceInfo serviceInfo) {
         MainActivity activity = (MainActivity) getActivity();
 
-        // save host & port into shared prefs
+        // save service, host & port into shared prefs
         RuneAudioApplication application = (RuneAudioApplication) activity.getApplication();
+
+        application.setServiceName(serviceInfo.getServiceName());
         application.setHost(serviceInfo.getHost().getHostAddress());
         application.setPort(serviceInfo.getPort());
-
-        // switch to ui fragment.
-        // TODO: title in action bar needs to be updated.
-        activity.onNavigationDrawerItemSelected(BaseFragment.DEVICE_FRAGMENT);
     }
 
 
+    private void showServicesList() {
+        mServiceListView.post(new Runnable() {
+            @Override
+            public void run() {
+                mServiceListView.setVisibility(View.VISIBLE);
+            }
+        });
+    }
 
+    private void hideProgressLayout() {
+
+        // TODO: is there a better way to hide this as it needs to be on mainthread?
+        mProgressLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mProgressLayout.setVisibility(View.GONE);
+            }
+        });
+    }
+
+
+    @Override
+    public void OnServicesAdded() {
+
+        ArrayList<NsdServiceInfo> resolvedServiceList = mNsdHelper.getResolvedServiceList();
+
+        switch (resolvedServiceList.size()) {
+            case 0:
+                // TODO: give a toast or something to say nothing found.
+                break;
+
+
+            case 1:
+                // single host found: use it!
+                saveSelectedService(resolvedServiceList.get(0));
+
+                // switch to ui fragment.
+                // TODO: title in action bar needs to be updated.
+                MainActivity activity = (MainActivity) getActivity();
+                activity.onNavigationDrawerItemSelected(BaseFragment.DEVICE_FRAGMENT);
+                break;
+
+            default:
+
+                // switch to listview for user to choose.
+                hideProgressLayout();
+
+                // TODO: put this above & update via setter?
+                final DiscoveryServicesAdapter adapter = new DiscoveryServicesAdapter(getActivity(), mNsdHelper.getResolvedServiceList());
+
+                mServiceListView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mServiceListView.setAdapter(adapter);
+                    }
+                });
+
+                showServicesList();
+                break;
+        }
+
+    }
+
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+        ArrayList<NsdServiceInfo> resolvedServiceList = mNsdHelper.getResolvedServiceList();
+
+        saveSelectedService(resolvedServiceList.get(position));
+
+        // switch to ui fragment.
+        // TODO: title in action bar needs to be updated.
+        MainActivity activity = (MainActivity) getActivity();
+        activity.onNavigationDrawerItemSelected(BaseFragment.DEVICE_FRAGMENT);
+    }
 }
