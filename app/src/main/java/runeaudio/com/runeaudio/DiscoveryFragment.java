@@ -101,18 +101,18 @@ public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelp
 
 
     private void showServicesList() {
-        mServiceListView.post(new Runnable() {
-            @Override
-            public void run() {
-                mServiceListView.setVisibility(View.VISIBLE);
-            }
-        });
+        getActivity().runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        mServiceListView.setVisibility(View.VISIBLE);
+                    }
+                }
+        );
     }
 
     private void hideProgressLayout() {
-
-        // TODO: is there a better way to hide this as it needs to be on mainthread?
-        mProgressLayout.post(new Runnable() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 mProgressLayout.setVisibility(View.GONE);
@@ -150,7 +150,7 @@ public class DiscoveryFragment extends BaseFragment implements NsdHelper.NsdHelp
                 // TODO: put this above & update via setter?
                 final DiscoveryServicesAdapter adapter = new DiscoveryServicesAdapter(getActivity(), mNsdHelper.getResolvedServiceList());
 
-                mServiceListView.post(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         mServiceListView.setAdapter(adapter);
